@@ -3,10 +3,10 @@ from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, TIMESTAMP, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from logger_config import logger
-from routes_cards import router as cards_router  # Import the cards router
+from .logger_config import logger
+from .routes_cards import router as cards_router  # Import the cards router
 
-DATABASE_URL = "postgresql://user:your_password@192.168.1.120:5432/dbname"
+DATABASE_URL = "postgresql://user:your_password@127.0.1:5432/dbname"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -19,7 +19,6 @@ class User(Base):
     created_at = Column(TIMESTAMP, server_default=func.now())  # Add created_at column
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
-
 
 # Initiera databasen
 Base.metadata.create_all(bind=engine)

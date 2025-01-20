@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, TIMESTAMP, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from logger_config import logger
+from .logger_config import logger
 
 DATABASE_URL = "postgresql://user:your_password@192.168.1.120:5432/dbname"
 
