@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from .logger_config import logger
 from .routes_cards import router as cards_router  # Import the cards router
 
-DATABASE_URL = "postgresql://user:your_password@127.0.1:5432/dbname"
+DATABASE_URL = "postgresql://user:your_password@127.0.0.1:5432/dbname"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
