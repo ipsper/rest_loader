@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from .logger_config import logger
 
-DATABASE_URL = "postgresql://user:your_password@192.168.1.120:5432/dbname"
+DATABASE_URL = "postgresql://user:your_password@127.0.1:5432/dbname"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

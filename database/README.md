@@ -9,9 +9,15 @@ psql --version
 
 2. Installera PostgreSQL
 
+- är installerat
+
+```
+dpkg -l | grep postgresql
+```
+
 - På en Debian-baserad distribution (som Ubuntu)
 
-```￼
+```
   sudo apt update
   sudo apt install postgresql postgresql-contrib
 
@@ -20,7 +26,11 @@ psql --version
 3. Starta PostgreSQL-tjänsten:
 
 ```
+systemctl status postgresql
+
+
 sudo systemctl start postgresql
+
 sudo systemctl enable postgresql
 
 ```
@@ -37,9 +47,9 @@ sudo systemctl enable postgresql
 5. Skapa en ny användare och databas:
 
 ```
-CREATE USER user WITH PASSWORD your_password;
+CREATE USER "user" WITH PASSWORD 'your_password';
 CREATE DATABASE dbname;
-GRANT ALL PRIVILEGES ON DATABASE dbname TO user;
+GRANT ALL PRIVILEGES ON DATABASE dbname TO "user";
 \q
 exit
 ```
@@ -64,14 +74,14 @@ DROP DATABASE <database name>
 
 ```
 psql -U your_user -d your_database -h 127.0.0.1 -W
-psql -U user -d dbase -h 127.0.0.1 -W
+psql -U user -d dbname -h 127.0.0.1 -W
 
 ```
 
 Om du kör PostgreSQL lokalt och använder standardinställningarna, kan du logga in med:
 
 ```
-￼
+
 psql -U postgres
 ```
 
@@ -99,71 +109,15 @@ SELECT \* FROM your_table;
 
 Med dessa steg kan du enkelt läsa innehållet i en PostgreSQL-databas med `psql`.Med dessa steg kan du enkelt läsa innehållet i en PostgreSQL-databas med `psql`.
 
-# reinstall postgress
-
-För att installera om PostgreSQL på en Debian-baserad distribution (som Ubuntu), kan du följa dessa steg:
-
-Ta bort den nuvarande installationen av PostgreSQL:
-
-￼```
-
-sudo apt-get --purge remove postgresql postgresql-contrib
-
-sudo apt install postgresql postgresql-contrib
-
-````
-
-Rensa eventuella kvarvarande paket och konfigurationsfiler:
-
-￼```
-
-sudo apt-get autoremovesudo
-apt-get autocleansudo
-sudo rm -rf /var/lib/postgresql/
-sudo rm -rf /etc/postgresql/
-
-````
-
-Uppdatera paketlistan:
-
-￼```
-
-sudo apt-get update
-
-````
-
-Installera PostgreSQL på nytt:
-
-￼```
-
-sudo apt-get install postgresql postgresql-contrib
-````
-
-Starta PostgreSQL-tjänsten:
-
-```
-sudo systemctl enable postgresql
-sudo systemctl start postgresql
-```
-
 Skapa en ny användare och databas:
 
-Logga in på PostgreSQL:
-
-￼```
-
-sudo -i -u postgres
-psql
-￼```
-
-Skapa en ny användare och databas:
-￼```
+```
 
 CREATE USER user WITH PASSWORD 'your_password';
 CREATE DATABASE dbname;
 GRANT ALL PRIVILEGES ON DATABASE dbname TO user;
 \q
-￼```
+```
 
 ```
 
@@ -176,3 +130,113 @@ psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" 
 Is the server running locally and accepting connections on that socket?
 
 sudo mkdir -p /etc/postgresql/16/main/
+
+sudo mkdir -p /var/lib/postgresql/
+sudo mkdir -p /etc/postgresql/
+
+sudo mkdir -p /etc/postgresql/16/main/
+
+sudo vi /etc/postgresql/16/main/postgresql.conf
+listen_addresses = '\*'
+sudo vi /etc/postgresql/16/main/pg_hba.conf
+
+host all all 127.0.0.1/32 md5
+
+sudo mkdir -p /var/lib/postgresql/16/main
+sudo chown -R postgres:postgres /var/lib/postgresql/16/main
+sudo chmod 700 /var/lib/postgresql/16/main
+
+1. Ta bort PostgreSQL helt
+   Använd följande kommando för att ta bort alla PostgreSQL-relaterade paket helt och hållet:
+
+```
+
+sudo apt purge postgresql* -y
+```
+
+- Kontrollera om några relaterade paket fortfarande finns med:
+
+```
+dpkg -l | grep postgresql
+```
+
+- Om några poster fortfarande visas, ta bort dem manuellt:
+
+```
+sudo apt remove --purge postgresql-client-common postgresql-common -y
+```
+
+2. Ta bort kvarvarande PostgreSQL-filer och kataloger
+
+- Ta bort alla konfigurations- och databasfiler:
+
+```
+sudo rm -rf /var/lib/postgresql/
+sudo rm -rf /var/log/postgresql/
+sudo rm -rf /etc/postgresql/
+sudo rm -rf ~/.psql_history
+```
+
+3. Uppdatera pakethanteraren
+   Kör följande kommando för att rensa bort onödiga paket och uppdatera systemet:
+
+```
+sudo apt autoremove -y
+sudo apt autoclean
+```
+
+Verifiera att PostgreSQL är helt borttaget genom att köra:
+
+```
+
+psql --version
+```
+
+- Om det fortfarande visas, kontrollera om någon installation är från en tredjeparts-PPA (t.ex. pgdg) genom att köra:
+
+```
+
+which psql
+```
+
+- Om det pekar på /usr/local/bin/psql, ta bort den manuellt:
+
+```
+
+sudo rm /usr/bin/psql
+```
+
+4. Installera om PostgreSQL
+   Efter att du har säkerställt att PostgreSQL är borttaget, installera det på nytt:
+
+```
+sudo apt update
+sudo apt install postgresql postgresql-contrib -y
+```
+
+5. Kontrollera installationen
+   Starta tjänsten och kontrollera att PostgreSQL körs korrekt:
+
+```
+
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+sudo systemctl status postgresql
+
+```
+
+- Logga sedan in i databasen för att bekräfta att den fungerar:
+
+```
+sudo -u postgres psql
+```
+
+- Skapa en ny användare och databas:
+
+```
+CREATE USER "user" WITH PASSWORD 'your_password';
+CREATE DATABASE dbname;
+GRANT ALL PRIVILEGES ON DATABASE dbname TO "user";
+
+\q
+```
