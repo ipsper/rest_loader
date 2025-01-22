@@ -240,3 +240,30 @@ GRANT ALL PRIVILEGES ON DATABASE dbname TO "user";
 
 \q
 ```
+
+# problem
+
+## psycopg2.errors.InsufficientPrivilege: permission denied for schema public
+
+Logga in på PostgreSQL som superuser: Logga in på PostgreSQL som superuser (vanligtvis postgres):
+
+```
+sudo -i -u postgrespsql
+psql
+```
+
+Ge användaren nödvändiga privilegier: Ge användaren user nödvändiga privilegier för att skapa tabeller i schemat public:
+
+```
+
+GRANT ALL PRIVILEGES ON SCHEMA public TO "user";
+ALTER USER "user" WITH SUPERUSER;
+```
+
+Avsluta psql-prompten: Avsluta psql-prompten:
+
+```￼
+\q
+```
+
+Försök att initiera databasen igen: Försök att initiera databasen igen genom att köra din FastAPI-applikation.

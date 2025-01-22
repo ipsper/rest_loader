@@ -1,27 +1,12 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, TIMESTAMP, func
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 from .logger_config import logger
 from .routes_cards import router as cards_router  # Import the cards router
+from .dbase_api import SessionLocal, init_db
+from .models import User
 
-DATABASE_URL = "postgresql://user:your_password@127.0.0.1:5432/dbname"
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# Definiera tabeller
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    created_at = Column(TIMESTAMP, server_default=func.now())  # Add created_at column
-    name = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True)
-
-# Initiera databasen
-Base.metadata.create_all(bind=engine)
+init_db()
 
 app = FastAPI()
 
@@ -32,7 +17,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 class UserCreate(BaseModel):
     name: str
     email: str
@@ -63,5 +47,21 @@ def read_users(db: Session = Depends(get_db)):
         logger.error("Error fetching users", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
     
+# Ta bort en användare baserat på ID
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        db.delete(user)
+        db.commit()
+        logger.info("User deleted successfully", extra={"user_id": user_id})
+        return {"message": "User deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        logger.error("Error deleting user", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
 # Include the cards router
 app.include_router(cards_router)
