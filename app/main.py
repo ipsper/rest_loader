@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from .logger_config import logger
 from .routes_cards import router as cards_router  # Import the cards router
+from .routes_tables import router as tables_router  # Import the cards router
 from .dbase_api import SessionLocal, init_db
 from .models import User
 
@@ -65,3 +66,4 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 
 # Include the cards router
 app.include_router(cards_router)
+app.include_router(tables_router)

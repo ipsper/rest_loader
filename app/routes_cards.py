@@ -4,19 +4,14 @@ from sqlalchemy.orm import Session
 from .logger_config import logger
 from .dbase_api import SessionLocal
 from .models import Card
-
-# Dependency to get a database session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from .dbase_api import get_db
 
 # Pydantic model for the request body
 class CardCreate(BaseModel):
-    title: str
-    description: str
+    cardnumber: str
+    month_year: str
+    cvc: str
+    cardholder: str
 
 # Create a router for the cards endpoints
 router = APIRouter()
@@ -25,7 +20,8 @@ router = APIRouter()
 @router.post("/cards/")
 def create_card(card: CardCreate, db: Session = Depends(get_db)):
     try:
-        new_card = Card(title=card.title, description=card.description)
+        new_card = Card(cardnumber=card.cardnumber, month_year=card.month_year, 
+                        cvc=card.cvc, cardholder=card.cardholder)
         db.add(new_card)
         db.commit()
         db.refresh(new_card)
@@ -49,7 +45,7 @@ def read_cards(db: Session = Depends(get_db)):
     
 # Ta bort en användare baserat på ID
 @router.delete("/cards/{card_id}")
-def delete_user(card_id: int, db: Session = Depends(get_db)):
+def delete_card(card_id: int, db: Session = Depends(get_db)):
     try:
         card = db.query(Card).filter(Card.id == card_id).first()
         if card is None:
@@ -62,4 +58,3 @@ def delete_user(card_id: int, db: Session = Depends(get_db)):
         db.rollback()
         logger.error("Error deleting card", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
