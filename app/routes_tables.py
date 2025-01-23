@@ -27,7 +27,9 @@ def get_table_names(db: Session = Depends(get_db)):
 @router.delete("/tables/")
 def delete_table(table: TableName, db: Session = Depends(get_db)):
     try:
-        back = delete_table(table.table_name)
+        logger.info(f"Table delete {table.table_name}")
+        back = db.delete(table.table_name)
+#        back = delete_table(table.table_name)
         logger.info(f"Table delete back {back}")
         db.commit()
         logger.info(f"Table deleted successfully {table.table_name}")
