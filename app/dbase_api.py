@@ -1,6 +1,8 @@
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from .logger_config import logger
+import json
 
 DATABASE_URL = "postgresql://user:your_password@127.0.0.1:5432/dbname"
 
@@ -30,10 +32,16 @@ def get_db():
     finally:
         db.close()
 
-def force_delete_table(table_name: str):
-    with engine.connect() as connection:
-        connection.execute(text(f"DROP TABLE IF EXISTS {table_name} CASCADE"))
-        print(f"Table {table_name} force deleted.")
+def delete_table(table_name: str):
+    from .models import User, Card
+    logger.info(f"Table delete_table for {table_name}")
+    if table_name == "users":
+        Base.metadata.drop_all(bind=engine, tables=[User.__table__])
+    elif table_name == "cards":
+        Base.metadata.drop_all(bind=engine, tables=[Card.__table__])
+    else:
+        raise ValueError("Invalid table name")
+    print(f"Table {table_name} force deleted.")
 
 def create_table(table_name: str):
     from .models import User, Card
@@ -46,23 +54,27 @@ def create_table(table_name: str):
     print(f"Table {table_name} created.")
 
 def recreate_table(table_name: str):
-    force_delete_table(table_name)
+    delete_table(table_name)
     create_table(table_name)
     print(f"Table {table_name} recreated.")
 
-def check_table_configuration(table_name: str):
+def table_configuration(table_name: str):
     inspector = inspect(engine)
-    print(f"check_table_configuration Table {table_name}.")
-    columns = inspector.get_columns(table_name) or []
-    primary_keys = inspector.get_pk_constraint(table_name) or {}
-    foreign_keys = inspector.get_foreign_keys(table_name) or []
+    print(f"table_configuration Table {table_name}.")
     indexes = inspector.get_indexes(table_name) or []
+    print(f"table_configuration Indexes {indexes}.")
 
     config = {
-        "columns": [dict(column) for column in columns],
-        "primary_keys": {key: (value if isinstance(value, list) else [value]) for key, value in primary_keys.items()} if primary_keys else {},
-        "foreign_keys": [dict(fk) for fk in foreign_keys],
         "indexes": [dict(index) for index in indexes]
     }
 
-    return config
+    logger.info(f"api Table configuration for {table_name}: {config}")
+    retur = {"configuration": config}
+
+    try:
+        json.dumps(retur)
+    except (TypeError, ValueError) as e:
+        logger.error(f"Configuration for table {table_name} is not JSON serializable: {e}")
+        raise ValueError(f"Configuration for table {table_name} is not JSON serializable: {e}")
+
+    return retur
