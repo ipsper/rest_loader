@@ -19,12 +19,23 @@ router = APIRouter()
 @router.post("/stock/")
 def add_produkt(stock: Inventory, db: Session = Depends(get_db)):
     try:
+        print(f"Received stock type: {stock}")
+        print(f"Received db type: {type(db)}")
+        print(f"stock.prodname type: {type(stock.prodname)}")
+        print(f"stock.productid type: {type(stock.productid)}")
+        print(f"stock.instock type: {type(stock.instock)}")
+        print(f"stock.prize type: {type(stock.prize)}")
+
+        existing_product = db.query(Store).filter(Store.productid == stock.productid).first()
+        if existing_product:
+            return {"message": "Product already exists", "produkt": existing_product}
+
         new_produkt = Store(prodname=stock.prodname, productid=stock.productid, instock=stock.instock, prize=stock.prize)
         db.add(new_produkt)
         db.commit()
         db.refresh(new_produkt)
-        logger.info("User added successfully", extra={"produkt": new_produkt})
-        return {"message": "User added successfully", "produkt": new_produkt}
+        logger.info(f"User produkt successfully {new_produkt}")
+        return {"message": "User produkt successfully", "produkt": new_produkt}
     except Exception as e:
         db.rollback()
         logger.error("Error adding produkt", exc_info=True)

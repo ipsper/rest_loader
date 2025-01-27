@@ -2,6 +2,15 @@ import requests
 
 #BASE_URL = "http://192.168.1.102:8000"
 
+def test_first_read_stock(server_ip, server_port):
+    BASE_URL = f"http://{server_ip}:{server_port}"
+    response = requests.get(f"{BASE_URL}/stock/")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    data = response.json()
+    assert isinstance(data, dict)
+    assert "stock" in data
+
 def test_add_produkt(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     payload = {
@@ -15,7 +24,7 @@ def test_add_produkt(server_ip, server_port):
     assert response.headers["content-type"] == "application/json"
     data = response.json()
     assert "message" in data
-    assert data["message"] == "Produkt added successfully"
+    assert data["message"] == "User produkt successfully"
     assert "produkt" in data
     assert data["produkt"]["prodname"] == "Test Product"
 

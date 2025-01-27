@@ -29,6 +29,6 @@ class Store(Base):
     __tablename__ = "store"
     productid = Column(Integer, primary_key=True, index=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
-    prodnamn = Column(String, nullable=False)
+    prodname = Column(String, nullable=False)
     instock = Column(Integer, nullable=True)
     prize = Column(Float, nullable=True)
