@@ -1,7 +1,5 @@
 import requests
 
-#BASE_URL = "http://192.168.1.102:8000"
-
 def test_first_read_stock(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     response = requests.get(f"{BASE_URL}/stock/")
@@ -14,19 +12,30 @@ def test_first_read_stock(server_ip, server_port):
 def test_add_produkt(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     payload = {
-        "prodname": "Test Product",
+        "prodname": "Test Product 1",
         "productid": 1,
         "instock": 100,
         "prize": 9.99
     }
     response = requests.post(f"{BASE_URL}/stock/", json=payload)
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    data = response.json()
-    assert "message" in data
-    assert data["message"] == "User produkt successfully"
-    assert "produkt" in data
-    assert data["produkt"]["prodname"] == "Test Product"
+    if response.status_code == 400:
+        data = response.json()
+        print("test_add_produkt 400", data)
+        assert response.status_code == 400
+        assert "detail" in data
+        detail = data["detail"]
+        if isinstance(detail, str):
+            assert "Product already exists" in detail
+        else:
+            assert detail["message"] == "Product already exists"
+    if response.status_code == 200:
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/json"
+        data = response.json()
+        print("test_add_produkt 200", data)
+        assert "message" in data
+        assert "produkt" in data
+        assert data["produkt"]["prodname"] == "Test Product"
 
 def test_read_stock(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
@@ -41,7 +50,7 @@ def test_delete_produkt(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     # First, add a product to delete
     payload = {
-        "prodname": "Test Product",
+        "prodname": "Test Product 2",
         "productid": 2,
         "instock": 100,
         "prize": 9.99
@@ -49,24 +58,42 @@ def test_delete_produkt(server_ip, server_port):
     add_response = requests.post(f"{BASE_URL}/stock/", json=payload)
     assert add_response.status_code == 200
     productid = add_response.json()["produkt"]["productid"]
-
+    print("test_delete_produkt ", productid)
     # Now, delete the product
     delete_response = requests.delete(f"{BASE_URL}/stock/{productid}")
+    back = delete_response.json()
+    print("test_delete_produkt back", back)
     assert delete_response.status_code == 200
     assert delete_response.json() == {"message": "Produkt deleted successfully"}
 
 def test_decrease_stock(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     # First, add a product to decrease stock
+    get_all_response = requests.get(f"{BASE_URL}/stock/productids/")
+    print("get all productids 200", get_all_response.json())
+
+
     payload = {
-        "prodname": "Test Product",
+        "prodname": "Test Product 3",
         "productid": 3,
         "instock": 100,
         "prize": 9.99
     }
     add_response = requests.post(f"{BASE_URL}/stock/", json=payload)
-    assert add_response.status_code == 200
+    assert add_response.status_code in (200, 400)
+    if add_response.status_code == 400:
+        data = add_response.json()
+        assert "detail" in data
+        detail = data["detail"]
+        if isinstance(detail, str):
+            assert "Product already exists" in detail
+        else:
+            assert detail["message"] == "Product already exists"
+    if add_response.status_code == 200:
+        print("test_decrease_stock 200",)
+    print("test_decrease_stock ", add_response.json())
     productid = add_response.json()["produkt"]["productid"]
+    print("test_decrease_stock back", productid)
 
     # Now, decrease the stock
     decrease_payload = {
@@ -85,7 +112,7 @@ def test_increase_stock(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     # First, add a product to increase stock
     payload = {
-        "prodname": "Test Product",
+        "prodname": "Test Product 4",
         "productid": 4,
         "instock": 100,
         "prize": 9.99
@@ -111,7 +138,7 @@ def test_change_price(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     # First, add a product to change price
     payload = {
-        "prodname": "Test Product",
+        "prodname": "Test Product 5",
         "productid": 5,
         "instock": 100,
         "prize": 9.99

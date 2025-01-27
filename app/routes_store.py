@@ -28,7 +28,7 @@ def add_produkt(stock: Inventory, db: Session = Depends(get_db)):
 
         existing_product = db.query(Store).filter(Store.productid == stock.productid).first()
         if existing_product:
-            return {"message": "Product already exists", "produkt": existing_product}
+            raise HTTPException(status_code=400, detail={"message": "Product already exists", "produkt": existing_product})
 
         new_produkt = Store(prodname=stock.prodname, productid=stock.productid, instock=stock.instock, prize=stock.prize)
         db.add(new_produkt)
@@ -51,7 +51,29 @@ def read_stock(db: Session = Depends(get_db)):
     except Exception as e:
         logger.error("Error fetching stock", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-    
+
+# Endpoint to list all product IDs
+@router.get("/stock/productids/")
+def list_all_productids(db: Session = Depends(get_db)):
+    try:
+        productids = db.query(Store.productid).all()
+        logger.info(f"Fetched all product IDs {productids}")
+        return {"productids": [pid[0] for pid in productids]}
+    except Exception as e:
+        logger.error("Error fetching product IDs", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+# Endpoint to check if a product ID exists
+@router.get("/stock/productid_exists/{productid}")
+def do_productid_exist(productid: int, db: Session = Depends(get_db)):
+    try:
+        exists = db.query(Store).filter(Store.productid == productid).first() is not None
+        logger.info(f"Checked existence of product ID {productid}: {exists}")
+        return {"productid": productid, "exists": exists}
+    except Exception as e:
+        logger.error("Error checking product ID existence", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
 # Ta bort en produkt baserat på ID från lagret
 @router.delete("/stock/{productid}")
 def delete_produkt(productid: int, db: Session = Depends(get_db)):
@@ -61,7 +83,7 @@ def delete_produkt(productid: int, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Produkt not found")
         db.delete(produkt)
         db.commit()
-        logger.info("Produkt deleted successfully", extra={"prod_id": prod_id})
+        logger.info("Produkt deleted successfully", extra={"prod_id": productid})
         return {"message": "Produkt deleted successfully"}
     except Exception as e:
         db.rollback()
