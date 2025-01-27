@@ -13,7 +13,7 @@ class TableName(BaseModel):
 
 # Endpoint to get all table names
 @router.get("/tables/")
-def get_table_names(db: Session = Depends(get_db)):
+def fetching_tables_names(db: Session = Depends(get_db)):
     try:
         inspector = inspect(engine)
         tables = inspector.get_table_names()

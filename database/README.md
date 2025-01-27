@@ -248,7 +248,7 @@ GRANT ALL PRIVILEGES ON DATABASE dbname TO "user";
 Logga in på PostgreSQL som superuser: Logga in på PostgreSQL som superuser (vanligtvis postgres):
 
 ```
-sudo -i -u postgrespsql
+sudo -i -u postgres
 psql
 ```
 
@@ -264,6 +264,35 @@ Avsluta psql-prompten: Avsluta psql-prompten:
 
 ```￼
 \q
+
 ```
 
 Försök att initiera databasen igen: Försök att initiera databasen igen genom att köra din FastAPI-applikation.
+
+# städa bort en databas
+
+Lösning: Koppla bort aktiva användare och ta bort databasen
+Koppla bort alla aktiva sessioner manuellt:
+
+Kör följande SQL-fråga från en annan databas (t.ex. postgres) för att avsluta alla aktiva sessioner för databasen dbname:
+
+````
+sudo -i -u postgres
+psql
+
+```￼
+- städa
+
+```￼
+SELECT pg_terminate_backend(pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = 'dbname';
+```￼
+
+Ta bort databasen efter att sessionerna avslutats:
+
+Efter att sessionerna har avslutats, kör kommandot för att ta bort databasen:
+```￼
+DROP DATABASE dbname;
+
+````
