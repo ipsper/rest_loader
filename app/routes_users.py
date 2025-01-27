@@ -7,7 +7,8 @@ from .dbase_api import get_db
 
 # Pydantic model for the request body
 class UserCreate(BaseModel):
-    name: str
+    surname: str
+    givenname: str
     email: str
     street: str
     street_number: str
@@ -22,7 +23,7 @@ router = APIRouter()
 @router.post("/users/")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
-        new_user = User(name=user.name, email=user.email, street=user.street, street_number=user.street_number, city=user.city, zip=user.zip, country=user.country)
+        new_user = User(surname=user.surname, givenname=user.givenname,  email=user.email, street=user.street, street_number=user.street_number, city=user.city, zip=user.zip, country=user.country)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)

@@ -10,4 +10,8 @@ Ett verktyg för lasta restful applicationer
 
 [Installera Databas](/database/README.md)
 
+## Tester
+
+[Test information](/pytesta/README.md)
+
 # Funderingen är just nu att bara kunna

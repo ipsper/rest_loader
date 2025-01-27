@@ -3,6 +3,8 @@
 ## patametrar
 
 - alla parametrar kommer grån kommer från conftest.py
+  --server_ip
+  --server_port
 
 ## Kommandon
 
@@ -22,3 +24,6 @@ pytest -s tests/test_cards.py --server_ip "127.0.0.1" --server_port "8000"
 - kontrollera hur pratig
   -q # quiet - less verbose - mode (shortcut)
   -v # increase verbosity, display individual test names
+
+- kör enbart ett testfall i en test_file.py
+  test_file.py::test_function_name
