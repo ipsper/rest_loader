@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from faker import Faker
+import json
 from .logger_config import logger
 from .models import Card
 from .dbase_api import get_db
@@ -18,6 +20,7 @@ class CardholderRequest(BaseModel):
 
 # Create a router for the cards endpoints
 router = APIRouter()
+fake = Faker()
 
 # Endpoint to create a new card
 @router.post("/cards/")
@@ -124,4 +127,20 @@ def list_cardholders(db: Session = Depends(get_db)):
         return {"cardholders": [{"id": card.id, "cardholder": card.cardholder} for card in cardholders]}
     except Exception as e:
         logger.error("Error fetching cardholders", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@router.get("/generate_credit_cards")
+def generate_credit_cards(count: int = Query(default=1, ge=1)):
+    try:
+        credit_cards = []
+        for _ in range(count):
+            credit_card = {
+                "card_number": fake.credit_card_number(),
+                "expiry_date": fake.credit_card_expire(),
+                "name": fake.name(),
+                "cvc": fake.credit_card_security_code()
+            }
+            credit_cards.append(credit_card)
+        return {"credit_cards": credit_cards}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

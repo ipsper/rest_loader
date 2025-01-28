@@ -122,3 +122,15 @@ def test_get_card_by_id(server_ip, server_port):
     assert isinstance(data, dict)
     assert "id" in data
     assert data["id"] == card_id
+
+def test_find_duplicates(server_ip, server_port):
+    BASE_URL = f"http://{server_ip}:{server_port}"
+    file_path = 'indata/firstnames.json'
+    with open(file_path, 'rb') as file:
+        response = requests.post(f"{BASE_URL}/duplicates", files={"file": file})
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    data = response.json()
+    assert isinstance(data, dict)
+    assert "duplicates" in data
+    assert isinstance(data["duplicates"], list)
