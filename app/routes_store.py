@@ -12,6 +12,10 @@ class Inventory(BaseModel):
     instock: int
     prize: float
 
+class DecreaseStockRequest(BaseModel):
+    productid: int
+    amount: int
+
 # Create a router for the cards endpoints
 router = APIRouter()
 
@@ -90,24 +94,25 @@ def delete_produkt(productid: int, db: Session = Depends(get_db)):
         logger.error("Error deleting produkt", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
     
+
+
 # Endpoint to decrease the stock of a product
 @router.post("/stock/decrease/")
-def decrease_stock(productid: int, amount: int, db: Session = Depends(get_db)):
+def decrease_stock(request: DecreaseStockRequest, db: Session = Depends(get_db)):
     try:
-        produkt = db.query(Store).filter(Store.productid == productid).first()
+        produkt = db.query(Store).filter(Store.productid == request.productid).first()
         if produkt is None:
             raise HTTPException(status_code=404, detail="Produkt not found")
-        if produkt.instock < amount:
-            raise HTTPException(status_code=400, detail="Not enough stock")
-        produkt.instock -= amount
+        if produkt.instock < request.amount:
+            raise HTTPException(status_code=406, detail="Not enough stock")
+        produkt.instock -= request.amount
         db.commit()
-        logger.info("Decreased stock successfully", extra={"productid": productid, "amount": amount})
-        return {"message": "Decreased stock successfully", "productid": productid, "new_stock": produkt.instock}
+        logger.info("Decreased stock successfully", extra={"productid": request.productid, "amount": request.amount})
+        return {"message": "Decreased stock successfully", "productid": request.productid, "new_stock": produkt.instock}
     except Exception as e:
         db.rollback()
         logger.error("Error decreasing stock", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
 
 # Function to increase the stock of a product
 def increase_stock(productid: int, amount: int, db: Session):
@@ -148,3 +153,15 @@ def change_price(productid: int, new_price: float, db: Session):
 @router.post("/stock/change_price/")
 def change_price_endpoint(productid: int, new_price: float, db: Session = Depends(get_db)):
     return change_price(productid, new_price, db)
+
+# Endpoint to get the stock of a product
+@router.get("/stock/{productid}/instock")
+def get_instock(productid: int, db: Session = Depends(get_db)):
+    try:
+        produkt = db.query(Store).filter(Store.productid == productid).first()
+        if produkt is None:
+            raise HTTPException(status_code=404, detail="Produkt not found")
+        return {"productid": productid, "instock": produkt.instock}
+    except Exception as e:
+        logger.error("Error fetching instock", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

@@ -66,47 +66,52 @@ def test_delete_produkt(server_ip, server_port):
     assert delete_response.status_code == 200
     assert delete_response.json() == {"message": "Produkt deleted successfully"}
 
+
 def test_decrease_stock(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
     # First, add a product to decrease stock
-    get_all_response = requests.get(f"{BASE_URL}/stock/productids/")
-    print("get all productids 200", get_all_response.json())
-
-
     payload = {
-        "prodname": "Test Product 3",
+        "prodname": "Test Product",
         "productid": 3,
         "instock": 100,
         "prize": 9.99
     }
     add_response = requests.post(f"{BASE_URL}/stock/", json=payload)
     assert add_response.status_code in (200, 400)
+    data = add_response.json()
+    print("test_decrease_stock add_response:", data)
     if add_response.status_code == 400:
-        data = add_response.json()
         assert "detail" in data
         detail = data["detail"]
         if isinstance(detail, str):
             assert "Product already exists" in detail
         else:
             assert detail["message"] == "Product already exists"
+        # Fetch the productid since it already exists
+        productid = payload["productid"]
     if add_response.status_code == 200:
-        print("test_decrease_stock 200",)
-    print("test_decrease_stock ", add_response.json())
-    productid = add_response.json()["produkt"]["productid"]
-    print("test_decrease_stock back", productid)
-
+        productid = data["produkt"]["productid"]
+    in_stock = requests.get(f"{BASE_URL}/stock/{productid}/instock")
+    print("test_decrease_stock in_stock:", in_stock)
+    in_stock_data = in_stock.json()
+    instocken = in_stock_data["instock"]
+    print("test_decrease_stock instocken:", instocken)
+    print("test_decrease_stock productid:", productid)
+    reduse_with = 10
     # Now, decrease the stock
     decrease_payload = {
         "productid": productid,
-        "amount": 10
+        "amount": reduse_with
     }
     decrease_response = requests.post(f"{BASE_URL}/stock/decrease/", json=decrease_payload)
+    print("test_decrease_stock decrease_response:", decrease_response)
     assert decrease_response.status_code == 200
     data = decrease_response.json()
+    print("test_decrease_stock decrease_response:", data)
     assert "message" in data
     assert data["message"] == "Decreased stock successfully"
     assert "new_stock" in data
-    assert data["new_stock"] == 90
+    assert data["new_stock"] == instocken - reduse_with
 
 def test_increase_stock(server_ip, server_port):
     BASE_URL = f"http://{server_ip}:{server_port}"
@@ -159,3 +164,18 @@ def test_change_price(server_ip, server_port):
     assert data["message"] == "Changed price successfully"
     assert "new_price" in data
     assert data["new_price"] == 19.99
+
+
+def test_get_instock(server_ip, server_port):
+    BASE_URL = f"http://{server_ip}:{server_port}"
+    productid = 1
+    response = requests.get(f"{BASE_URL}/stock/{productid}/instock")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    data = response.json()
+    print("test_get_instock response:", data)
+    assert isinstance(data, dict)
+    assert "productid" in data
+    assert "instock" in data
+    assert data["productid"] == productid
+    assert isinstance(data["instock"], int)   
