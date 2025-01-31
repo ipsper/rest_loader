@@ -7,6 +7,7 @@ from .routes_tables import router as tables_router  # Import the cards router
 from .routes_users import router as users_router  # Import the cards router
 from .routes_store import router as users_store # Import the cards router
 from .routes_purchase import router as users_purchase  # Import the cards router
+from .routes_loader import router as loader  # Import the cards router
 from .dbase_api import SessionLocal, init_db
 from .models import User
 
@@ -28,3 +29,4 @@ app.include_router(tables_router)
 app.include_router(users_router)
 app.include_router(users_store)
 app.include_router(users_purchase)
+app.include_router(loader)

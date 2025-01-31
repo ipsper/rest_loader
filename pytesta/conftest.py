@@ -13,6 +13,7 @@ def pytest_addoption(parser):
     parser.addoption("--location", action="store")
     parser.addoption("--client", action="store")
     parser.addoption("--client_typ", action="store")
+    parser.addoption("--interval", action="store", default="2", help="Interval/backpresure timeout for the tests")
     parser.addoption("--server_ip", action="store", default="127.0.0.1", help="Server IP for the tests")
     parser.addoption("--server_port", action="store", default="8000", help="Server port for the tests")
 
@@ -110,6 +111,13 @@ def server_ip(request):
 @pytest.fixture(scope='session')
 def server_port(request):
     client_typ_value = request.config.option.server_port
+    if client_typ_value is None:
+        pytest.skip()
+    return client_typ_value
+
+@pytest.fixture(scope='session')
+def interval(request):
+    client_typ_value = request.config.option.interval
     if client_typ_value is None:
         pytest.skip()
     return client_typ_value
