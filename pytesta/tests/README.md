@@ -10,6 +10,8 @@
 
 pytest -s tests/test_cards.py --server_ip "127.0.0.1" --server_port "8000"
 
+pytest -svvx tests/test_loader.py --server_ip "127.0.0.1" --server_port "8000" --interval "10" --amount 99
+
 ## pytest options förklaring
 
 - hanterar output från testfall
@@ -27,3 +29,5 @@ pytest -s tests/test_cards.py --server_ip "127.0.0.1" --server_port "8000"
 
 - kör enbart ett testfall i en test_file.py
   test_file.py::test_function_name
+
+##

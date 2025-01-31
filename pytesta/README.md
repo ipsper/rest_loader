@@ -28,3 +28,8 @@ uppdatera tests/conftest.py
 pytest tests/test_database.py --server_ip "127.0.0.1" --server_port "8000"
 
 ```
+
+4. pytest.ini
+   [dokumentation](pytest.ini)
+
+här ligger tests/pytest.ini

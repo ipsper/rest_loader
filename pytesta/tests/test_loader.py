@@ -2,61 +2,26 @@
 import requests
 import time
 
-def test_process_chunks(server_ip, server_port, interval):
+def test_process__chunks(server_ip, server_port, interval, amount):
     BASE_URL = f"http://{server_ip}:{server_port}"
     payload = {
         "chunk": {
-            "1": {
+            str(i): {
                 "host": server_ip,
                 "port": server_port,
                 "metoderna": "GET",
                 "endpoint": "/stock/",
                 "body": None
-            },
-            "2": {
-                "host": server_ip,
-                "port": server_port,
-                "metoderna": "GET",
-                "endpoint": "/stock/",
-                "body": None
-            },
-            "3": {
-                "host": server_ip,
-                "port": server_port,
-                "metoderna": "GET",
-                "endpoint": "/stock/",
-                "body": None
-            },
-            "4": {
-                "host": server_ip,
-                "port": server_port,
-                "metoderna": "GET",
-                "endpoint": "/stock/",
-                "body": None
-            },
-             "5": {
-                "host": server_ip,
-                "port": server_port,
-                "metoderna": "GET",
-                "endpoint": "/stock/",
-                "body": None
-            },
-            "6": {
-                "host": server_ip,
-                "port": server_port,
-                "metoderna": "GET",
-                "endpoint": "/stock/",
-                "body": None
-            }             
+            } for i in range(1, amount + 1)
         },
-        "interval": interval  # Konfigurerbart intervall i mikrosekunder # Konfigurerbart intervall
+        "interval": interval
     }
     start_time = time.time()
     response = requests.post(f"{BASE_URL}/process_chunks/", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert "results" in data
-    print("test_process_chunks data", data)
+    print("test_process_100_chunks data", data)
     for result in data["results"]:
         assert "chunk_id" in result
         assert "result" in result
@@ -68,8 +33,17 @@ def test_process_chunks(server_ip, server_port, interval):
             assert "response" in result["result"]
     end_time = time.time()
     duration = end_time - start_time
-    lenduration = len(payload["chunk"])
-    print("test_process_chunks interval", interval)
-    print("test_process_chunks len chunk", lenduration)
-    print("test_process_chunks duration", interval * duration)
-    assert duration > interval * lenduration
+    print("test_process_100_chunks duration", duration)
+
+    # Print status code statistics
+    print("Status code statistics:")
+    for status_code, count in data["status_code_statistics"].items():
+        print(f"Status code {status_code}: {count} times")
+
+    # Convert status_code_statistics keys to integers for comparison
+    status_code_statistics = {int(k): v for k, v in data["status_code_statistics"].items()}
+
+    # Compare the number of 200 status codes with the amount
+    assert status_code_statistics.get(200, 0) == amount, (
+        f"Expected {amount} status code 200 responses, but got {status_code_statistics.get(200, 0)}"
+    )

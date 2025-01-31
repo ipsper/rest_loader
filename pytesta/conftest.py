@@ -13,9 +13,11 @@ def pytest_addoption(parser):
     parser.addoption("--location", action="store")
     parser.addoption("--client", action="store")
     parser.addoption("--client_typ", action="store")
-    parser.addoption("--interval", action="store", default="2", help="Interval/backpresure timeout for the tests")
+    parser.addoption("--interval", action="store", type=int, default="0", help="Interval/backpresure timeout for the tests")
     parser.addoption("--server_ip", action="store", default="127.0.0.1", help="Server IP for the tests")
     parser.addoption("--server_port", action="store", default="8000", help="Server port for the tests")
+    parser.addoption("--amount", action="store", type=int, default="1", help="Bra att kunna speca antal för testerna")
+
 
 @pytest.fixture(scope='session')
 def name(request):
@@ -118,6 +120,13 @@ def server_port(request):
 @pytest.fixture(scope='session')
 def interval(request):
     client_typ_value = request.config.option.interval
+    if client_typ_value is None:
+        pytest.skip()
+    return client_typ_value
+
+@pytest.fixture(scope='session')
+def amount(request):
+    client_typ_value = request.config.option.amount
     if client_typ_value is None:
         pytest.skip()
     return client_typ_value

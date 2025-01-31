@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+from .logger_config import logger
 from typing import Dict, Any, Optional
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+from collections import Counter
 
 router = APIRouter()
 
@@ -16,7 +18,7 @@ class Chunk(BaseModel):
 
 class ChunkRequest(BaseModel):
     chunk: Dict[int, Chunk]
-    interval: Optional[float]  # Interval in microseconds
+    interval: Optional[int]  = 100000 # Interval in microseconds
 
 def send_request(chunk: Chunk):
     url = f"http://{chunk.host}:{chunk.port}{chunk.endpoint}"
@@ -44,8 +46,15 @@ def send_request(chunk: Chunk):
 @router.post("/process_chunks/")
 def process_chunks(request: ChunkRequest, workers: int = 10):
     chunks = request.chunk
-    interval = request.interval or 0
+    interval = request.interval
+    if interval < 1_000_000:
+        interval = interval / 1_000_000  # Convert microseconds to seconds
+    else:
+        interval = interval / 1  # Keep as seconds
     results = []
+    status_counter = Counter()
+    start_time = time.time()
+
     with ThreadPoolExecutor(max_workers=workers) as executor:
         future_to_chunk = {executor.submit(send_request, chunk): chunk_id for chunk_id, chunk in chunks.items()}
         for future in as_completed(future_to_chunk):
@@ -55,7 +64,13 @@ def process_chunks(request: ChunkRequest, workers: int = 10):
                 if "error" in result:
                     raise HTTPException(status_code=500, detail=f"Error processing chunk {chunk_id}: {result['error']}")
                 results.append({"chunk_id": chunk_id, "result": result})
+                status_counter[result["status_code"]] += 1
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error processing chunk {chunk_id}: {str(e)}")
             time.sleep(interval)
-    return {"results": results}
+            end_time = time.time()
+            duration = end_time - start_time
+            logger.info(f"Processed chunk {chunk_id} in {duration:.6f} seconds")
+            logger.info(f"Interval for chunk {chunk_id}: {interval:.6f} seconds")
+
+    return {"results": results, "status_code_statistics": dict(status_counter)}
