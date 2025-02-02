@@ -17,7 +17,7 @@ def pytest_addoption(parser):
     parser.addoption("--server_ip", action="store", default="127.0.0.1", help="Server IP for the tests")
     parser.addoption("--server_port", action="store", default="8000", help="Server port for the tests")
     parser.addoption("--amount", action="store", type=int, default="1", help="Bra att kunna speca antal för testerna")
-
+    parser.addoption("--ips", action="store", default="", help="Comma-separated list of IP addresses")
 
 @pytest.fixture(scope='session')
 def name(request):
@@ -130,3 +130,10 @@ def amount(request):
     if client_typ_value is None:
         pytest.skip()
     return client_typ_value
+
+@pytest.fixture(scope='session')
+def ips(request):
+    arg = request.config.option.ips
+    if arg is None:
+        pytest.skip()
+    return arg.split(",") if arg else []

@@ -30,4 +30,6 @@ pytest -svvx tests/test_loader.py --server_ip "127.0.0.1" --server_port "8000" -
 - kör enbart ett testfall i en test_file.py
   test_file.py::test_function_name
 
-##
+## k8 lab tester
+
+pytest -svvx tests/test_lab_k8.py --ips 192.168.1.101,192.168.1.102 --server_port "8000" --amount 99
