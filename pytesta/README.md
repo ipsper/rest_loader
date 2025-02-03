@@ -27,6 +27,10 @@ uppdatera tests/conftest.py
 ```
 pytest tests/test_database.py --server_ip "127.0.0.1" --server_port "8000"
 
+
+pytest -svvx tests/test_lab_k8.py --load_ip "127.0.0.1" --load_port "8000" --ips 192.168.1.101,192.168.1.102 --server_port "8000" --amount 10
+
+
 ```
 
 4. pytest.ini

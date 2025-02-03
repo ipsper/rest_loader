@@ -4,6 +4,8 @@ import time
 
 
 def test_ips_are_up(ips, server_port):
+    
+
     for ip in ips:
         url = f"http://{ip}:{server_port}/users/"
         try:

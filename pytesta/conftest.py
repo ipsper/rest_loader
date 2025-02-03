@@ -13,11 +13,14 @@ def pytest_addoption(parser):
     parser.addoption("--location", action="store")
     parser.addoption("--client", action="store")
     parser.addoption("--client_typ", action="store")
-    parser.addoption("--interval", action="store", type=int, default="0", help="Interval/backpresure timeout for the tests")
-    parser.addoption("--server_ip", action="store", default="127.0.0.1", help="Server IP for the tests")
-    parser.addoption("--server_port", action="store", default="8000", help="Server port for the tests")
-    parser.addoption("--amount", action="store", type=int, default="1", help="Bra att kunna speca antal för testerna")
+    parser.addoption("--interval", action="store", type=int, default="0", help="Interval timeout for the tests")
+    parser.addoption("--per_second", action="store", type=int, default=0, help="requests per second for the tests")
+    parser.addoption("--per_minute", action="store", type=int, default=0, help="requests per minute for the tests")
+    parser.addoption("--amount", action="store", type=int, default=1, help="Bra att kunna speca antal för testerna")
+    parser.addoption("--load_ip", action="store", default="127.0.0.1", help="Loader tool IP for the tests")
+    parser.addoption("--load_port", action="store", default="8000", help="Loader tool port for the tests")
     parser.addoption("--ips", action="store", default="", help="Comma-separated list of IP addresses")
+    parser.addoption("--server_port", action="store", default="8000", help="Server port for the tests")
 
 @pytest.fixture(scope='session')
 def name(request):
@@ -104,15 +107,15 @@ def client_typ(request):
     return client_typ_value
 
 @pytest.fixture(scope='session')
-def server_ip(request):
-    client_typ_value = request.config.option.server_ip
+def load_ip(request):
+    client_typ_value = request.config.option.load_ip
     if client_typ_value is None:
         pytest.skip()
     return client_typ_value
 
 @pytest.fixture(scope='session')
-def server_port(request):
-    client_typ_value = request.config.option.server_port
+def load_port(request):
+    client_typ_value = request.config.option.load_port
     if client_typ_value is None:
         pytest.skip()
     return client_typ_value
@@ -120,6 +123,20 @@ def server_port(request):
 @pytest.fixture(scope='session')
 def interval(request):
     client_typ_value = request.config.option.interval
+    if client_typ_value is None:
+        pytest.skip()
+    return client_typ_value
+
+@pytest.fixture(scope='session')
+def per_second(request):
+    client_typ_value = request.config.option.per_second
+    if client_typ_value is None:
+        pytest.skip()
+    return client_typ_value
+
+@pytest.fixture(scope='session')
+def per_minute(request):
+    client_typ_value = request.config.option.per_minute
     if client_typ_value is None:
         pytest.skip()
     return client_typ_value
@@ -137,3 +154,10 @@ def ips(request):
     if arg is None:
         pytest.skip()
     return arg.split(",") if arg else []
+
+@pytest.fixture(scope='session')
+def server_port(request):
+    client_typ_value = request.config.option.server_port
+    if client_typ_value is None:
+        pytest.skip()
+    return client_typ_value

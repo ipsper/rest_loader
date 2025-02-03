@@ -1,27 +1,35 @@
 # filepath: /home/per/repo/rest_loader/pytesta/tests/test_loader.py
 import requests
 import time
+from itertools import cycle
 
-def test_process__chunks(server_ip, server_port, interval, amount):
-    BASE_URL = f"http://{server_ip}:{server_port}"
+
+def test_process_chunks(load_ip, load_port, ips, server_port, amount, per_second=10, per_minute=0):
+    BASE_URL = f"http://{load_ip}:{load_port}"
+    print("test_process_chunks BASE_URL", BASE_URL)
+    print("test_process_chunks ips", ips, "server_port", server_port, "per_second", per_second, "per_minute", per_minute, "amount", amount)
+    ip_cycle = cycle(ips)
     payload = {
         "chunk": {
             str(i): {
-                "host": server_ip,
+                "host": next(ip_cycle),
                 "port": server_port,
                 "metoderna": "GET",
-                "endpoint": "/stock/",
+                "endpoint": "/users/",
                 "body": None
             } for i in range(1, amount + 1)
         },
-        "interval": interval
-    }
+        "requests_per_second": per_second,
+        "requests_per_minute": per_minute
+        }
+    print("test_process_chunks payload", payload)
     start_time = time.time()
     response = requests.post(f"{BASE_URL}/process_chunks/", json=payload)
+    print("test_process_chunks response", response)
     assert response.status_code == 200
     data = response.json()
     assert "results" in data
-    print("test_process_100_chunks data", data)
+    print("test_process_chunks data", data)
     for result in data["results"]:
         assert "chunk_id" in result
         assert "result" in result
@@ -33,7 +41,7 @@ def test_process__chunks(server_ip, server_port, interval, amount):
             assert "response" in result["result"]
     end_time = time.time()
     duration = end_time - start_time
-    print("test_process_100_chunks duration", duration)
+    print("test_process_chunks duration", duration)
 
     # Print status code statistics
     print("Status code statistics:")
@@ -47,3 +55,5 @@ def test_process__chunks(server_ip, server_port, interval, amount):
     assert status_code_statistics.get(200, 0) == amount, (
         f"Expected {amount} status code 200 responses, but got {status_code_statistics.get(200, 0)}"
     )
+
+
