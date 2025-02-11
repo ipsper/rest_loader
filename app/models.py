@@ -32,3 +32,13 @@ class Store(Base):
     prodname = Column(String, nullable=False)
     instock = Column(Integer, nullable=True)
     prize = Column(Float, nullable=True)
+
+class Produkt(Base):
+    __tablename__ = "product"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    productid = Column(String, nullable=False)
+    weight = Column(String, nullable=True)
+    volym = Column(String, nullable=True)
+    produktionstid = Column(String, nullable=True)
+    tillverkare = Column(String, nullable=True)
